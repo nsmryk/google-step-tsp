@@ -10,7 +10,12 @@ CHALLENGES = 7
 def distance(city1, city2):
     return math.sqrt((city1[0] - city2[0]) ** 2 + (city1[1] - city2[1]) ** 2)
 
-
+'''
+cities      : xy coordinates of cities
+N           : number of cities
+tour        : cities lined up in the order of visit
+path_length : cost of visiting cities in the order of tour
+'''
 def verify_output():
     for challenge_number in range(CHALLENGES):
         print(f'Challenge {challenge_number}')
