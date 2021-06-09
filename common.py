@@ -9,7 +9,8 @@ def read_input(filename):
         for line in f.readlines()[1:]:  # Ignore the first line.
             xy = line.split(',')
             cities.append((float(xy[0]), float(xy[1])))
-        print(cities)
+        print("{0} is read".format(filename))
+        #print(cities)
         return cities
 
 '''

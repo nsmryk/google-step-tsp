@@ -8,60 +8,61 @@ from common import print_tour, read_input, format_tour
 INF = 100100
 def distance(city1, city2):
     return math.sqrt((city1[0] - city2[0]) ** 2 + (city1[1] - city2[1]) ** 2)
-'''
 
-'''
+def get_distance(cities):
+    number_of_cities = len(cities)
+    distance_matrix = [[0] * number_of_cities for i in range(number_of_cities)]
+    for i in range(number_of_cities):
+        for j in range(i, number_of_cities):
+            distance_matrix[i][j] = distance_matrix[j][i] = distance(cities[i], cities[j])
+    return distance_matrix
+
 def is_cross(city_a1, city_a2, city_b1, city_b2):
-    a1_x = city_a1[0]
-    a1_y = city_a1[1]
-    a2_x = city_a2[0]
-    a2_y = city_a2[1]
-    b1_x = city_b1[0]
-    b1_y = city_b1[1]
-    b2_x = city_b2[0]
-    b2_y = city_b2[1]
-    # x座標によるチェック
-    if(a1_x >= a2_x):
-        if ((a1_x < b1_x and a1_x < b2_x) or  (a2_x > b1_x and a2_x > b2_x)):
-            return False
-        else:
-            if ((a2_x < b1_x and a2_x < b2_x) or  (a1_x > b1_x and a1_x > b2_x)):
-                return False
-    # y座標によるチェック
-    if (a1_y >= a2_y):
-        if ((a1_y < b1_y and a1_y < b2_y) or (a2_y > b1_y and a2_y > b2_y)):
-            return False
+    if distance(city_a1,city_a2) + distance(city_b1,city_b2) > distance(city_a1,city_b1) + distance(city_b2,city_a2):
+        return True
     else:
-        if ((a2_y < b1_y and a2_y < b2_y) or  (a1_y > b1_y and a1_y > b2_y)):
-            return False
-    if (((a1_x - a2_x) * (b1_y - a1_y) + (a1_y - a2_y) * (a1_x - b1_x)) * 
-        ((a1_x - a2_x) * (b2_y - a1_y) + (a1_y - a2_y) * (a1_x - b2_x)) > 0):
         return False
-    if (((b1_x - b2_x) * (a1_y - b1_y) + (b1_y - b2_y) * (b1_x - a1_x)) * 
-        ((b1_x - b2_x) * (a2_y - b1_y) + (b1_y - b2_y) * (b1_x - a2_x)) > 0):
-        return False
-    return True
 
 # city_a1_itrator が最も小さい city_b2_itrator が最も大きい
-def uncross_pathes(tour,city_a1_itrator, city_a2_itrator, city_b1_itrator, city_b2_itrator):
-    new_tour = tour[:city_a1_itrator]
-    new_tour += tour[city_a2_itrator:city_b1_itrator].reverse()
-    new_tour += tour[city_b2_itrator:]
-    return new_tour
+def uncross_pathes(tour,city_iterator1, city_iterator2 ):
+        tmp = tour[city_iterator1 + 1 : city_iterator2 + 1 ]
+        tour[city_iterator1 + 1 : city_iterator2 + 1 ] = tmp[::-1]
+        return tour
 
-def greedy(dist,city_list):
+def improve_tour(cities,tour,dist):
+    number_of_cities = len(cities)
+    while True:
+        improved = False
+        for i in range(0,number_of_cities-2):
+            for j in range(i+2,number_of_cities):
+                if i == 0 and j == number_of_cities - 1:
+                    continue
+                if is_cross(cities[tour[i]],cities[tour[i+1]],cities[tour[j]],cities[tour[(j+1)%number_of_cities]]):
+                    tour = uncross_pathes(tour,i,j)
+                    improved = True
+        if not improved:
+            break
+    return tour
+
+
+def greedy(distance_matrix,city_list):
     current_city = city_list.pop(0)
     unvisited_cities = city_list#set(range(1, number_of_cities))
     tour = [current_city]
     while unvisited_cities:
         next_city = min(unvisited_cities,
-                        key=lambda city: dist[current_city][city])
+                        key=lambda city: distance_matrix[current_city][city])
         
         unvisited_cities.remove(next_city)
         tour.append(next_city)
         current_city = next_city
     return tour
-
+def solve_neo(cities):
+    distance_matrix = get_distance(cities)
+    city_list = list(range(0, len(cities)))
+    tour = greedy(distance_matrix,city_list)
+    tour = improve_tour(cities,tour,distance_matrix)
+    return tour
 def solve(cities):
     number_of_cities = len(cities)
     x_grid = 8
@@ -72,11 +73,10 @@ def solve(cities):
         city_y_grid = math.floor(cities[i][1]/(900.0/y_grid))
         grid[city_x_grid][city_y_grid].append(i)
 
-    print(grid)
-    dist = [[0] * number_of_cities for i in range(number_of_cities)]
+    distance_matrix = [[0] * number_of_cities for i in range(number_of_cities)]
     for i in range(number_of_cities):
         for j in range(i, number_of_cities):
-            dist[i][j] = dist[j][i] = distance(cities[i], cities[j])
+            distance_matrix[i][j] = distance_matrix[j][i] = distance(cities[i], cities[j])
 
     tour_grid = [ [[] for j in range(y_grid)] for i in range(x_grid)]
     copied_grid = copy.deepcopy(grid)
@@ -84,9 +84,8 @@ def solve(cities):
         for y in range(y_grid):
             
             if len(grid[x][y]) > 0:
-                tour_mini = greedy(dist,copied_grid[x][y])
+                tour_mini = greedy(distance_matrix,copied_grid[x][y])
                 tour_grid[x][y] = tour_mini
-                print("x{0} y{1} grid{2} tour_grid{3}\n".format(x,y,grid[x][y],tour_grid[x][y]))
    
     tour = []
     grid_order_x = list(range(0,8,1))
@@ -99,25 +98,15 @@ def solve(cities):
         x = grid_order_x[i]
         y = grid_order_y[i]
         tour += tour_grid[x][y]
-    print(tour)
-    
-    '''
-    if (is_cross(city_a1, city_a2, city_b1, city_b2)):
-        uncross_pathes(tour,city_a1, city_a2, city_b1, city_b2)
-    '''
-
     return tour
   
 if __name__ == '__main__':
     # assert len(sys.argv) > 1
     CHALLENGES = 7
-    cities = read_input(f'input_{2}.csv')
-    tour = solve(cities)
     
     for i in range(CHALLENGES):
-        #print(i)
         cities = read_input(f'input_{i}.csv')
-        tour = solve(cities)
+        tour = solve_neo(cities)
         #print_tour(tour)
         with open(f'output_{i}.csv', 'w') as f:
             f.write(format_tour(tour) + '\n')
