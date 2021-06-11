@@ -1,4 +1,4 @@
-<https://github.com/nsmryk/step2/week5>にもコードがあります。←こちらがいつも使っている方です。
+<https://github.com/nsmryk/step2/tree/master/week5>にもコードがあります。←こちらがいつも使っている方です。
 
 # 宿題5
 solver_mine.py に実装されている
