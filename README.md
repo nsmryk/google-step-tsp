@@ -10,7 +10,7 @@ solver_mine.py に実装されている
 
 を実行した後、<http://localhost:8000/visualizer/build/default/>でビジュアル化した結果を見ることができる。
 
-##　実行結果
+## 実行結果
 Input_{i}.csvの結果はOutput_{i}.csv(i = 0,1...6)に出力されている。
 上から順に訪れていく。
 greedyアルゴリズムで求められた経路から交わっているパスをなくしているのでgreedyアルゴリズムで得られた結果より向上されている。
